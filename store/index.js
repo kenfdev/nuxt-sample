@@ -1,6 +1,10 @@
 import Vuex from 'vuex';
 
-const types = {
+export const mutationTypes = {
+  SET_PAGE_TITLE: 'SET_PAGE_TITLE',
+};
+
+export const actionTypes = {
   SET_PAGE_TITLE: 'SET_PAGE_TITLE',
 };
 
@@ -10,13 +14,13 @@ const createStore = () => {
       pageTitle: '',
     },
     mutations: {
-      [types.SET_PAGE_TITLE](state, title) {
+      [mutationTypes.SET_PAGE_TITLE](state, title) {
         state.pageTitle = title;
       },
     },
     actions: {
-      setPageTitle(vuexContext, title) {
-        vuexContext.commit(types.SET_PAGE_TITLE, title);
+      [actionTypes.SET_PAGE_TITLE](vuexContext, title) {
+        vuexContext.commit(mutationTypes.SET_PAGE_TITLE, title);
       },
     },
     getters: {
