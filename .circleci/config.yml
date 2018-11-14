@@ -52,12 +52,12 @@ workflows:
       - build:
           requires:
             - install
-      - test:
-          requires:
-            - build
+      # - test:
+      #     requires:
+      #       - build
       - deploy:
           filters:
             branches:
               only: master
           requires:
-            - test
+            - build
