@@ -1,7 +1,7 @@
 version: 2
 
 defaults: &defaults
-  working_directory: ~/aws-rough
+  working_directory: ~/repo
   docker:
     - image: circleci/python:3.6-jessie-node-browsers
 
@@ -19,9 +19,9 @@ jobs:
           name: Save NPM Package Cache
           key: npm-packages-{{ checksum "package-lock.json" }}
           paths:
-            - ~/.cache/npm
+            - node_modules
       - persist_to_workspace:
-          root: ~/aws-rough
+          root: ~/repo
           paths:
             - ./*
 
@@ -29,17 +29,17 @@ jobs:
     <<: *defaults
     steps:
       - attach_workspace:
-          at: ~/aws-rough
+          at: ~/repo
       - run: npm run generate
       - persist_to_workspace:
-          root: ~/aws-rough
+          root: ~/repo
           paths:
             - ./*
   deploy:
     <<: *defaults
     steps:
       - attach_workspace:
-          at: ~/aws-rough
+          at: ~/repo
       - run: sudo pip install awscli
       - run: aws --endpoint-url https://7c6206ca.ngrok.io s3 sync ./dist/ s3://nuxt --exact-timestamps --delete --exclude "*.html" --cache-control max-age=31536000
       - run: aws --endpoint-url https://7c6206ca.ngrok.io s3 sync ./dist/ s3://nuxt --exact-timestamps --delete --exclude "*" --include "*.html" --cache-control no-store
