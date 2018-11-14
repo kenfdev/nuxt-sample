@@ -1,0 +1,63 @@
+version: 2
+
+defaults: &defaults
+  working_directory: ~/aws-rough
+  docker:
+    - image: circleci/python:3.6-jessie-node-browsers
+
+jobs:
+  install:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          name: Restore NPM Package Cache
+          keys:
+            - npm-packages-{{ checksum "package-lock.json" }}
+      - run: npm install
+      - save_cache:
+          name: Save NPM Package Cache
+          key: npm-packages-{{ checksum "package-lock.json" }}
+          paths:
+            - ~/.cache/npm
+      - persist_to_workspace:
+          root: ~/aws-rough
+          paths:
+            - ./*
+
+  build:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: ~/aws-rough
+      - run: npm run generate
+      - persist_to_workspace:
+          root: ~/aws-rough
+          paths:
+            - ./*
+  deploy:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: ~/aws-rough
+      - run: sudo pip install awscli
+      - run: aws --endpoint-url https://7c6206ca.ngrok.io s3 sync ./dist/ s3://nuxt --exact-timestamps --delete --exclude "*.html" --cache-control max-age=31536000
+      - run: aws --endpoint-url https://7c6206ca.ngrok.io s3 sync ./dist/ s3://nuxt --exact-timestamps --delete --exclude "*" --include "*.html" --cache-control no-store
+
+workflows:
+  version: 2
+  test-deploy:
+    jobs:
+      - install
+      - build:
+          requires:
+            - install
+      - test:
+          requires:
+            - build
+      - deploy:
+          filters:
+            branches:
+              only: master
+          requires:
+            - test
